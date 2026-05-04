@@ -1,0 +1,3 @@
+https://github.com/orbbec/OrbbecSDK/releases/download/v1.10.27/OrbbecViewer_v1.10.27_202509252154_win_x64_release.zip
+
+https://zadig.akeo.ie/
