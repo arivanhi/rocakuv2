@@ -77,7 +77,7 @@ print("[INFO] Kamera RGB berhasil terhubung!")
 # ==============================================================================
 # 5. PROGRAM UTAMA CAPTURE
 # ==============================================================================
-total_photos = 25
+total_photos = 1
 capture_delay = 0.5 
 
 print("\n" + "="*60)
