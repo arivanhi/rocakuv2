@@ -53,6 +53,7 @@ Sebelum menginstal pustaka Python, **SANGAT PENTING** untuk menyiapkan *environm
 ```
 
 **Tahap 1: Kalibrasi Papan (Klik 4 Titik)**
+
 Saat pertama kali dijalankan, program akan meminta Anda mengklik 4 titik sudut area kotak catur pada layar.
 - Urutan Klik Wajib:
     - Sudut Kiri Atas
@@ -63,6 +64,7 @@ Saat pertama kali dijalankan, program akan meminta Anda mengklik 4 titik sudut a
 Catatan: Setelah 4 titik diklik, data akan otomatis tersimpan di kalibrasi.json. Saat program dijalankan ulang di masa depan, tahap ini akan dilewati otomatis.
 
 **Tahap 2: Live Detection**
+
 Program akan menampilkan papan catur dari sudut pandang atas (Bird's-eye view) secara full screen.
 - Kotak Hijau: Ada bidak terdeteksi di atasnya.
 - Kotak Abu-abu: Kotak kosong.
