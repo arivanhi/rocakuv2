@@ -55,10 +55,10 @@ Sebelum menginstal pustaka Python, **SANGAT PENTING** untuk menyiapkan *environm
 **Tahap 1: Kalibrasi Papan (Klik 4 Titik)**
 Saat pertama kali dijalankan, program akan meminta Anda mengklik 4 titik sudut area kotak catur pada layar.
 - Urutan Klik Wajib:
-    Sudut Kiri Atas
-    Sudut Kanan Atas
-    Sudut Kanan Bawah
-    Sudut Kiri Bawah
+    - Sudut Kiri Atas
+    - Sudut Kanan Atas
+    - Sudut Kanan Bawah
+    - Sudut Kiri Bawah
 Catatan: Setelah 4 titik diklik, data akan otomatis tersimpan di kalibrasi.json. Saat program dijalankan ulang di masa depan, tahap ini akan dilewati otomatis.
 
 **Tahap 2: Live Detection**
