@@ -29,7 +29,7 @@ Sebelum menginstal pustaka Python, **SANGAT PENTING** untuk menyiapkan *environm
 
 1. **Clone Repository**
 ```bash
-   git clone [https://github.com/arivanhi/rocakuv2](https://github.com/arivanhi/rocakuv2)
+   git clone https://github.com/arivanhi/rocakuv2
    cd rocakuv2
 ```
 
