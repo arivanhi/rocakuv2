@@ -59,6 +59,7 @@ Saat pertama kali dijalankan, program akan meminta Anda mengklik 4 titik sudut a
     - Sudut Kanan Atas
     - Sudut Kanan Bawah
     - Sudut Kiri Bawah
+
 Catatan: Setelah 4 titik diklik, data akan otomatis tersimpan di kalibrasi.json. Saat program dijalankan ulang di masa depan, tahap ini akan dilewati otomatis.
 
 **Tahap 2: Live Detection**
