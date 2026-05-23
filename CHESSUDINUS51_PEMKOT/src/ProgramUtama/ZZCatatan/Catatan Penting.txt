@@ -1,0 +1,34 @@
+Serial data pergerakan pemain dari Arduino ke GUI
+1 Arduino: GUI 
+2 GUI: OK
+3 Arduino: Data Movement
+4 GUI: SALAH / BENAR
+5 Jika dibalas SALAH mengulang proses dari 3 / jika dibalas BENAR proses pengiriman usai. 
+
+movesRecord harus ada spasinya diawal.
+
+WEB REFERENCE:
+1 https://www.youtube.com/watch?v=EnYui0e73Rs&list=PLBwF487qi8MGU81nDGaeNE1EnNEPYWKY_
+2 https://www.youtube.com/watch?v=O2PzLeiBEuE
+3 https://www.youtube.com/watch?v=h8fSdSUKttk&list=PLOJzCFLZdG4zk5d-1_ah2B4kqZSeIlWtt
+4 https://github.com/jaeheonshim/ChessBoard --> Chessboard Library
+5 https://stockfishchess.org/about/ --> Stockfish Chess EEngine
+6 http://www.bluefeversoft.com/Chess/index.html --> FEN tutorial
+7 https://www.youtube.com/watch?v=ghn0RLx2jLs&t=10s --> Tutorial membuat engine di JAR file
+8 https://stackoverflow.com/questions/7637290/get-command-prompt-output-to-string-in-java -> komunikasi dengan cmd
+9 https://techviral.net/run-multiple-commands-in-cmd/ -> kasih command ke cmd
+10 https://www.youtube.com/watch?v=YpZ9pXTzjLA setting C++ in netbeans
+11 https://awesomeopensource.com/projects/chess-engine/java chess engine in java
+12 https://github.com/senyast4745/Stockfish-Java
+13 https://www.andreinc.net/2021/04/22/writing-a-universal-chess-interface-client-in-java client to Engine
+14 https://github.com/bhlangonijr/chesslib library movement java
+15 https://gist.github.com/aliostad/f4470274f39d29b788c1b09519e67372
+
+CEK PROMOSI:
+rnbqkbnr/p1pppppp/8/8/8/8/PpPPPPPP/4KBNR w kq - 0 0
+
+KENDALA:
+KING fungsi canCastleKing/Queen atau untuk mengecek lukir masih bisa saja salah.. awalnya error karena hasil getPiece() null jadi diganti manual
+
+CYGWIN COMMAND:
+cygstart <file> run file stockfish.exe tetapi di command promt 
