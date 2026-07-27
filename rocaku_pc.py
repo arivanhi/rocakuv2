@@ -15,6 +15,11 @@ ORIENTASI_WARNA = "PUTIH"
 
 try:
     esp_serial = serial.Serial('COM3', 115200, timeout=0.1) 
+    # =================================================================
+    # WAJIB UNTUK CIRCUITPYTHON: Beritahu ESP32 bahwa PC sedang standby
+    esp_serial.dtr = True  
+    esp_serial.rts = True  
+    # =================================================================
     print("[INFO] ESP32 (Trigger) terhubung di COM3.")
 except:
     esp_serial = None
@@ -126,27 +131,25 @@ try:
         # ==============================================================================
         # --- LOGIKA PENERIMA DATA DARI ESP32 (TOMBOL & BALASAN GERAK ROBOT) ---
         # ==============================================================================
-        if esp_serial and esp_serial.in_waiting > 0:
-            line = esp_serial.readline().decode('utf-8').strip()
-            
-            if line == "MAKAN":
-                # Skenario: Bidak lawan diangkat, lalu tombol Makan ditekan
-                is_double_click = True   # Kita pinjam flag ini untuk memicu mode makan
-                trigger_capture = True
+        if esp_serial:
+            while esp_serial.in_waiting > 0: 
+                line = esp_serial.readline().decode('utf-8', errors='ignore').strip()
+                if not line: continue
                 
-            elif line == "CAPTURE":
-                # Skenario: Langkah biasa selesai ATAU langkah akhir dari proses memakan
-                is_double_click = False
-                trigger_capture = True
-                
-            elif line == "OK":
-                # Skenario: Robot fisik selesai bermanuver, lepaskan kunci GUI Java!
-                print("\n[INFO] Robot Fisik Selesai Bergerak! Meneruskan 'OK' ke Java.")
-                if java_serial:
-                    java_serial.write("OK".encode('utf-8'))
-                    # is_double_click = True   # Kita pinjam flag ini untuk memicu mode makan
-                    # trigger_capture = True
-
+                if "MAKAN" in line:
+                    is_double_click = True
+                    trigger_capture = True
+                    
+                elif "CAPTURE" in line:
+                    is_double_click = False
+                    trigger_capture = True
+                    
+                # [PERBAIKAN] Gunakan == agar tidak tertipu teks "Mengirim OK ke PC..."
+                elif line == "OK": 
+                    print("\n[INFO] Robot Fisik Selesai Bergerak! Meneruskan 'OK' ke Java.")
+                    if java_serial:
+                        # [PERBAIKAN] Hapus \n agar Java tidak stuck
+                        java_serial.write("OK".encode('utf-8'))
         # ==============================================================================
         # --- LOGIKA PENERIMA DATA DARI JAVA (GERAKAN ROBOT, RESET, & WARNA) ---
         # ==============================================================================
@@ -160,7 +163,8 @@ try:
                     print("\n[SYSTEM] Perintah RESET dari Java diterima!")
                     baseline_state = None
                     is_capture_move = False
-                    if esp_serial: esp_serial.write(("HOME\n").encode('utf-8'))
+                    # [PERBAIKAN] Harus RESET_GAME agar memori ESP32 ikut kembali ke posisi awal
+                    if esp_serial: esp_serial.write(("RESET_GAME\n").encode('utf-8'))
                 
                 # Skenario 2: Pilihan Warna Hitam dari GUI
                 elif perintah_dari_java == "SET_WARNA:HITAM":
@@ -268,7 +272,6 @@ try:
                             to_squares.append(sq)
 
                     # Validasi Poka-Yoke: Harus ada 1 kotak asal dan 1 kotak tujuan
-                    # Validasi Poka-Yoke: Harus ada 1 kotak asal dan 1 kotak tujuan
                     if len(from_squares) == 0 and len(to_squares) == 0:
                         # Abaikan sinyal gaib akibat pantulan (noise) mekanik tombol
                         pass 
@@ -278,8 +281,16 @@ try:
                         move_string = f"{from_squares[0]}{to_squares[0]}"
                         print(f"\n[POKA-YOKE] Mengirim Langkah ke Java: {move_string}")
                         if java_serial:
-                            java_serial.write(move_string.encode('utf-8'))
-                        # Simpan posisi baru untuk langkah berikutnya
+                            # TAMBAHKAN \n DI SINI JUGA
+                            java_serial.write((move_string).encode('utf-8'))
+                            
+                        # ==================================================
+                        # TAMBAHAN BARU: UPDATE MEMORI ESP32 SECARA DIAM-DIAM
+                        # ==================================================
+                        if esp_serial:
+                            esp_serial.write(f"HUMAN {move_string}\n".encode('utf-8'))
+                            print(f"[SYSTEM] Menyinkronkan memori robot: HUMAN {move_string}")
+                        # ==================================================
                         baseline_state = current_state.copy()
                         
                     else:
