@@ -8,18 +8,14 @@ import time
 # ==============================
 # PANEL KALIBRASI FISIK ROBOT
 # ==============================
-# 1. Tweak Presisi Magnet (Menggeser seluruh koordinat)
 TWEAK_X = 1.1  
 TWEAK_Y = 0.0  
 
-# 2. Pembalik Arah
 TUKAR_KOLOM = True
 TUKAR_BARIS = True
 
-# 3. Kalibrasi Tekanan Servo (Magnet)
-# Sesuaikan angka ini agar magnet tidak terlalu keras menggesek papan
-SERVO_NAIK = 40   # Posisi saat MEMBAWA bidak (Coba ubah ke 45, 50, atau 35)
-SERVO_TURUN = 70  # Posisi saat MELEPAS bidak (Standby)
+SERVO_NAIK = 40   
+SERVO_TURUN = 70  
 
 # ==============================
 # PIN SETUP & TOMBOL KENDALI AI
@@ -44,21 +40,22 @@ last_btn_makan = True
 def poll_serial_and_buttons(prompt=""):
     global last_btn_ok, last_btn_makan
     if prompt: 
-        print(prompt, end="") # Gunakan print agar langsung terkirim
+        print(prompt, end="") 
 
     buf = []
     while True:
         curr_ok = BTN_OK.value
         curr_makan = BTN_MAKAN.value
 
-        # --- PERBAIKAN: Gunakan print() bukan sys.stdout.write() ---
         if last_btn_ok and not curr_ok:
-            print("CAPTURE")
+            print("\r\nCAPTURE") 
             time.sleep(0.2) 
+            if prompt: print(prompt, end="") 
             
         if last_btn_makan and not curr_makan:
-            print("MAKAN")
+            print("\r\nMAKAN")
             time.sleep(0.2) 
+            if prompt: print(prompt, end="") 
 
         last_btn_ok = curr_ok
         last_btn_makan = curr_makan
@@ -68,7 +65,7 @@ def poll_serial_and_buttons(prompt=""):
             if ch in ("\r", ""): pass                      
             elif ch == "\n":              
                 if buf:
-                    print() # Balas dengan enter
+                    print() 
                     return "".join(buf).strip()
             elif ch in ("\x08", "\x7f"): 
                 if buf:
@@ -79,17 +76,6 @@ def poll_serial_and_buttons(prompt=""):
                 sys.stdout.write(ch)
         else:
             time.sleep(0.005)
-
-# ==============================
-# PANEL KALIBRASI FISIK ROBOT
-# ==============================
-# 1. Tweak Presisi Magnet (Menggeser seluruh koordinat)
-TWEAK_X = 1.1  # Menggeser 1.1mm sesuai ukuran Anda
-TWEAK_Y = 0.0  
-
-# 2. Pembalik Arah (Jika G2 lari ke C4, biarkan True untuk membaliknya)
-TUKAR_KOLOM = True
-TUKAR_BARIS = True
 
 # ==============================
 # KONSTANTA MEKANIK CORE XY
@@ -107,7 +93,6 @@ pos_y = 0.0
 X_SIGN = -1   
 Y_SIGN = 1    
 
-# Offset Vendor Asli
 SQUARE_SIZE = 55  
 OFFSET_TRASH = 165
 OFFSET_X = 27.5 - OFFSET_TRASH   
@@ -120,24 +105,40 @@ Y_MAX_LIMIT = 440
 # ==============================
 # INITIAL BOARD STATE
 # ==============================
-board_pieces = {
-    "A1": "RW1", "B1": "NW1", "C1": "BW1", "D1": "QW", "E1": "KW", "F1": "BW2", "G1": "NW2", "H1": "RW2",
-    "A2": "PW1", "B2": "PW2", "C2": "PW3", "D2": "PW4", "E2": "PW5", "F2": "PW6", "G2": "PW7", "H2": "PW8",
-    "A7": "PB1", "B7": "PB2", "C7": "PB3", "D7": "PB4", "E7": "PB5", "F7": "PB6", "G7": "PB7", "H7": "PB8",
-    "A8": "RB1", "B8": "NB1", "C8": "BB1", "D8": "QB", "E8": "KB", "F8": "BB2", "G8": "NB2", "H8": "RB2",
-}
-for row in "3456":
-    for col in "ABCDEFGH":
-        board_pieces[col + row] = None
-
-INITIAL_BOARD = board_pieces.copy()
+board_pieces = {}
+INITIAL_BOARD = {}
 moved_pieces = set()
+
+def reset_board_memory(mode="1"):
+    global board_pieces, INITIAL_BOARD, moved_pieces
+    moved_pieces.clear()
+    board_pieces.clear()
+    for row in "12345678":
+        for col in "ABCDEFGH":
+            board_pieces[col + row] = None
+            
+    if mode == "1":
+        board_pieces.update({
+            "A1": "RW1", "B1": "NW1", "C1": "BW1", "D1": "QW", "E1": "KW", "F1": "BW2", "G1": "NW2", "H1": "RW2",
+            "A2": "PW1", "B2": "PW2", "C2": "PW3", "D2": "PW4", "E2": "PW5", "F2": "PW6", "G2": "PW7", "H2": "PW8",
+            "A7": "PB1", "B7": "PB2", "C7": "PB3", "D7": "PB4", "E7": "PB5", "F7": "PB6", "G7": "PB7", "H7": "PB8",
+            "A8": "RB1", "B8": "NB1", "C8": "BB1", "D8": "QB", "E8": "KB", "F8": "BB2", "G8": "NB2", "H8": "RB2",
+        })
+    else:
+        board_pieces.update({
+            "H8": "RW1", "G8": "NW1", "F8": "BW1", "E8": "QW", "D8": "KW", "C8": "BW2", "B8": "NW2", "A8": "RW2",
+            "H7": "PW1", "G7": "PW2", "F7": "PW3", "E7": "PW4", "D7": "PW5", "C7": "PW6", "B7": "PW7", "A7": "PW8",
+            "H2": "PB1", "G2": "PB2", "F2": "PB3", "E2": "PB4", "D2": "PB5", "C2": "PB6", "B2": "PB7", "A2": "PB8",
+            "H1": "RB1", "G1": "NB1", "F1": "BB1", "E1": "QB", "D1": "KB", "C1": "BB2", "B1": "NB2", "A1": "RB2",
+        })
+    INITIAL_BOARD = board_pieces.copy()
+
+reset_board_memory("1")
 
 # ==============================
 # FUNGSI KALIBRASI KOORDINAT
 # ==============================
 def calculate_physical_xy(col_idx, row_idx):
-    # Membalik array jika fisik terpasang terbalik
     c_idx = 7 - col_idx if TUKAR_KOLOM else col_idx
     r_idx = 7 - row_idx if TUKAR_BARIS else row_idx
     
@@ -262,10 +263,12 @@ def execute_throw(target_color=None):
         send_to_graveyard(piece, pos)
         board_pieces[pos] = None
 
-def execute_physical_reset():
-    print("\n[RESET PIECES] Memulai sinkronisasi fisik total...")
+# Fungsi lama fisik dipertahankan jika sewaktu-waktu dibutuhkan
+def execute_physical_reset(mode="1"):
+    print(f"\n[RESET PIECES] Memulai sinkronisasi fisik total (Mode: {mode})...")
     moved_pieces.clear()
     execute_throw()
+    reset_board_memory(mode)
     restore_order = []
     for pos, piece_id in INITIAL_BOARD.items():
         if piece_id is None: continue
@@ -276,18 +279,9 @@ def execute_physical_reset():
         bring_from_graveyard(piece_id, pos)
         board_pieces[pos] = piece_id
 
-# # ==============================
-# # MOTOR & SERVO SETUP
-# # ==============================
-# servo = pwmio.PWMOut(get_pin("D27", "IO27", "GPIO27", "GP27"), frequency=50)
-# 
-# def servo_release(): servo.duty_cycle = 0
-# def set_angle(angle):
-#     pulse = 500 + (angle / 180) * 2000
-#     servo.duty_cycle = int(pulse / 20000 * 65535)
-# def servo_set(state):
-#     set_angle(40) if state else set_angle(70)
-
+# ==============================
+# MOTOR & SERVO SETUP
+# ==============================
 servo = pwmio.PWMOut(get_pin("D27", "IO27", "GPIO27", "GP27"), frequency=50)
 
 def servo_release(): servo.duty_cycle = 0
@@ -296,7 +290,6 @@ def set_angle(angle):
     servo.duty_cycle = int(pulse / 20000 * 65535)
 
 def servo_set(state):
-    # Menggunakan variabel dari Panel Kalibrasi di atas
     set_angle(SERVO_NAIK) if state else set_angle(SERVO_TURUN)
 
 EN = digitalio.DigitalInOut(get_pin("D13", "IO13", "GPIO13", "GP13"))
@@ -386,7 +379,19 @@ def bring(start_pos, end_pos):
     time.sleep(0.5)
     servo_release()
 
-    waypoints = get_direct_waypoints(start_pos, end_pos)
+    if piece_kind(piece_id) == "N":
+        sc, sr = pos_to_idx(start_pos)
+        ec, er = pos_to_idx(end_pos)
+        gut_c = sc + 0.5 if sc < ec else sc - 0.5
+        
+        wp1_x, wp1_y = get_xy_from_idx(gut_c, sr) 
+        wp2_x, wp2_y = get_xy_from_idx(gut_c, er) 
+        wp3_x, wp3_y = plate[end_pos]             
+        
+        waypoints = [(wp1_x, wp1_y), (wp2_x, wp2_y), (wp3_x, wp3_y)]
+    else:
+        waypoints = get_direct_waypoints(start_pos, end_pos)
+
     for wp_x, wp_y in waypoints:
         move_to(wp_x, wp_y)
 
@@ -464,25 +469,37 @@ def shell():
             print("Homing Selesai.")
             continue
 
-        if raw_line == "RESET_GAME":
-            execute_physical_reset()
+        # =======================================================
+        # PERUBAHAN: Set Start / Reset Game hanya melakukan Homing
+        # =======================================================
+        if raw_line.startswith("RESET_GAME"):
+            parts = raw_line.split()
+            mode = parts[1] if len(parts) > 1 else "1"
+            
+            print(f"\n[RESET] Menyinkronkan ulang memori AI (Mode: {mode})...")
+            reset_board_memory(mode) 
             simulated_board = board_pieces.copy()
+            
+            print("Melakukan Homing ke koordinat 0,0...")
+            home_manual(LIMIT_X, True, False)
+            time.sleep(0.2)
+            home_manual(LIMIT_Y, False, False)
+            pos_x, pos_y = 0.0, 0.0
+            print("Homing fisik dan reset memori selesai.")
+            
             sys.stdout.write("OK\n")
             continue
+        # =======================================================
         
-        # =======================================================
-        # TAMBAHAN BARU: SINKRONISASI MEMORI LANGKAH MANUSIA
-        # =======================================================
         if raw_line.startswith("HUMAN"):
             parts = raw_line.split()
             if len(parts) >= 2:
-                move_str = parts[1] # Mendapatkan "E2E4"
+                move_str = parts[1] 
                 if len(move_str) == 4 and move_str[0:2] in plate and move_str[2:4] in plate:
                     start_sq = move_str[0:2]
                     end_sq   = move_str[2:4]
                     piece = simulated_board.get(start_sq)
                     if piece:
-                        # Pindahkan bidak di dalam memori SAJA (tanpa motor fisik)
                         simulated_board[end_sq] = piece
                         simulated_board[start_sq] = None
                         board_pieces[end_sq] = piece
@@ -514,22 +531,17 @@ def shell():
                     simulated_board[end_sq] = piece
                     simulated_board[start_sq] = None
                 
-                # =======================================================
-                # TAMBAHAN: AUTO-HOME SETELAH SETIAP LANGKAH (ANTI-SLIP)
-                # =======================================================
                 print("Melakukan auto-homing untuk reset koordinat fisik...")
                 home_manual(LIMIT_X, True, False)
                 time.sleep(0.2)
                 home_manual(LIMIT_Y, False, False)
                 
-                # Reset paksa variabel software agar kembali sinkron 100% dengan fisik
                 pos_x = 0.0
                 pos_y = 0.0
                 print("Homing selesai.")
-                # =======================================================
-
                 print("Langkah fisik selesai. Mengirim OK ke PC...")
                 sys.stdout.write("OK\n")
+
 # ==============================
 # INISIALISASI MESIN
 # ==============================
