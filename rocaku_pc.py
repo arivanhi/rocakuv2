@@ -4,6 +4,7 @@ import time
 import json
 import os
 import serial
+import winsound  # Library bawaan Windows untuk membunyikan Buzzer PC
 from ultralytics import YOLO
 
 # ==============================================================================
@@ -11,27 +12,58 @@ from ultralytics import YOLO
 # ==============================================================================
 ORIENTASI_WARNA = "PUTIH" 
 
+# --- VARIABEL PORT SERIAL (SILAKAN UBAH DI SINI) ---
+PORT_ESP32 = 'COM7'
+PORT_JAVA  = 'COM10'
+# ---------------------------------------------------
+
+# ==============================================================================
+# 2. INISIALISASI AUDIO BUZZER
+# ==============================================================================
+def play_buzzer(jenis="giliran"):
+    """Membunyikan buzzer bawaan PC berdasarkan event"""
+    try:
+        if jenis == "giliran":
+            # Nada untuk giliran pemain (Frekuensi 1000Hz, Durasi 300ms)
+            winsound.Beep(1000, 300)
+        elif jenis == "reset":
+            # Nada ceria 2x saat reset game
+            winsound.Beep(1500, 100)
+            time.sleep(0.05)
+            winsound.Beep(1500, 100)
+        elif jenis == "error":
+            # Nada rendah peringatan Poka-Yoke (Frekuensi 500Hz, Durasi 600ms)
+            winsound.Beep(500, 600)
+        elif jenis == "player_jalan":
+            # Nada pendek konfirmasi langkah pemain sukses (Frekuensi 2000Hz, Durasi 150ms)
+            winsound.Beep(2000, 150)
+    except:
+        pass # Abaikan jika PC tidak memiliki speaker internal
+
+# ==============================================================================
+# 3. KONEKSI PERANGKAT
+# ==============================================================================
 try:
-    esp_serial = serial.Serial('COM7', 115200, timeout=0.1) 
+    esp_serial = serial.Serial(PORT_ESP32, 115200, timeout=0.1) 
     esp_serial.setDTR(False)
     esp_serial.setRTS(False)
     time.sleep(0.1)
     esp_serial.setDTR(True)  
     esp_serial.setRTS(True)  
-    print("[INFO] ESP32 (Trigger) terhubung di COM7.")
+    print(f"[INFO] ESP32 (Trigger) terhubung di {PORT_ESP32}.")
 except Exception as e:
     esp_serial = None
-    print(f"[WARNING] ESP32 tidak terdeteksi di COM7. Error: {e}")
+    print(f"[WARNING] ESP32 tidak terdeteksi di {PORT_ESP32}. Error: {e}")
 
 try:
-    java_serial = serial.Serial('COM10', 115200, timeout=0.1) 
-    print("[INFO] Jalur ke Java terhubung di COM10.")
+    java_serial = serial.Serial(PORT_JAVA, 115200, timeout=0.1) 
+    print(f"[INFO] Jalur ke Java terhubung di {PORT_JAVA}.")
 except:
     java_serial = None
-    print("[WARNING] Virtual COM10 (ke Java) tidak terdeteksi.")
+    print(f"[WARNING] Virtual {PORT_JAVA} (ke Java) tidak terdeteksi.")
 
 # ==============================================================================
-# 2. KONFIGURASI MODEL & VISUAL
+# 4. KONFIGURASI MODEL & VISUAL
 # ==============================================================================
 model = YOLO('model/best2_float32.tflite', task='detect') 
 cap = cv2.VideoCapture(0)
@@ -91,7 +123,7 @@ JEDA_DOUBLE_CLICK = 0.5
 DEBOUNCE_TIME = 0.1      
 
 # ==============================================================================
-# 3. LOOP UTAMA
+# 5. LOOP UTAMA
 # ==============================================================================
 try:
     while True:
@@ -134,8 +166,10 @@ try:
                 elif line == "OK": 
                     print("\n[INFO] Robot Fisik Selesai Bergerak! Meneruskan 'OK' ke Java.")
                     if java_serial:
-                        # PERBAIKAN: Murni hanya "OK" tanpa ada \n yang membuat Java Stuck!
                         java_serial.write("OK".encode('utf-8'))
+                    
+                    # --- FITUR BUZZER GILIRAN PEMAIN ---
+                    play_buzzer("giliran")
 
         # ==============================================================================
         # --- LOGIKA PENERIMA DATA DARI JAVA ---
@@ -150,6 +184,9 @@ try:
                     is_capture_move = False
                     if esp_serial: 
                         esp_serial.write((f"RESET_GAME {robot_color_flag}\n").encode('utf-8'))
+                        
+                    # --- FITUR BUZZER SAAT RESET ---
+                    play_buzzer("reset")
                 
                 elif perintah_dari_java == "SET_WARNA:HITAM":
                     print("\n[SYSTEM] Orientasi Papan: HITAM (Robot = PUTIH [0])")
@@ -254,10 +291,17 @@ try:
                             print(f"[SYSTEM] Menyinkronkan memori robot: HUMAN {esp_move}")
                             
                         baseline_state = current_state.copy()
+                        
+                        # --- FITUR BUZZER SAAT PEMAIN SELESAI JALAN ---
+                        play_buzzer("player_jalan")
+                        
                     else:
                         print("\n[PERINGATAN POKA-YOKE] Perubahan kotak tidak sinkron!")
                         print(f"Kotak Lepas: {from_squares} | Kotak Tekan: {to_squares}")
                         print("[SOLUSI] Jika sedang makan bidak: Angkat lawan -> Klik MAKAN -> Taruh bidak Anda -> Klik CAPTURE.")
+                        
+                        # --- FITUR BUZZER SAAT ERROR POKA-YOKE ---
+                        play_buzzer("error")
 
             for i in range(8):
                 for j in range(8):
