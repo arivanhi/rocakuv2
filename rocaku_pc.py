@@ -12,16 +12,16 @@ from ultralytics import YOLO
 ORIENTASI_WARNA = "PUTIH" 
 
 try:
-    esp_serial = serial.Serial('COM3', 115200, timeout=0.1) 
+    esp_serial = serial.Serial('COM7', 115200, timeout=0.1) 
     esp_serial.setDTR(False)
     esp_serial.setRTS(False)
     time.sleep(0.1)
     esp_serial.setDTR(True)  
     esp_serial.setRTS(True)  
-    print("[INFO] ESP32 (Trigger) terhubung di COM3.")
+    print("[INFO] ESP32 (Trigger) terhubung di COM7.")
 except Exception as e:
     esp_serial = None
-    print(f"[WARNING] ESP32 tidak terdeteksi di COM3. Error: {e}")
+    print(f"[WARNING] ESP32 tidak terdeteksi di COM7. Error: {e}")
 
 try:
     java_serial = serial.Serial('COM10', 115200, timeout=0.1) 

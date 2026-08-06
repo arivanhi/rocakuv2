@@ -1,4 +1,3 @@
-# boot.py -- run on boot-up
 import board
 import digitalio
 import pwmio
@@ -10,7 +9,9 @@ import time
 # PANEL KALIBRASI FISIK ROBOT
 # ==============================
 TWEAK_X = 1.1  
-TWEAK_Y = 0.0  
+# PERBAIKAN: Menggeser koordinat Y (maju/mundur) sejauh 1mm. 
+# Jika arah mundurnya ternyata terbalik, cukup ubah angka ini menjadi -1.0
+TWEAK_Y = 1.0  
 
 TUKAR_KOLOM = True
 TUKAR_BARIS = True
@@ -49,7 +50,7 @@ def poll_serial_and_buttons(prompt=""):
         curr_makan = BTN_MAKAN.value
 
         if last_btn_ok and not curr_ok:
-            print("\r\nCAPTURE") # Tambahan enter paksa agar PC langsung merespons
+            print("\r\nCAPTURE") 
             time.sleep(0.2) 
             if prompt: print(prompt, end="") 
             
@@ -472,8 +473,18 @@ def shell():
         if raw_line.startswith("RESET_GAME"):
             parts = raw_line.split()
             mode = parts[1] if len(parts) > 1 else "1"
-            execute_physical_reset(mode)
+            
+            print(f"\n[RESET] Menyinkronkan ulang memori AI (Mode: {mode})...")
+            reset_board_memory(mode) 
             simulated_board = board_pieces.copy()
+            
+            print("Melakukan Homing ke koordinat 0,0...")
+            home_manual(LIMIT_X, True, False)
+            time.sleep(0.2)
+            home_manual(LIMIT_Y, False, False)
+            pos_x, pos_y = 0.0, 0.0
+            print("Homing fisik dan reset memori selesai.")
+            
             sys.stdout.write("OK\n")
             continue
         
